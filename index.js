@@ -12,6 +12,7 @@ module.exports = function (pkg, config) {
   var html = config.html;
   var vendor = config.vendor;
   var webpack = config.webpack;
+  var server = config.server;
 
   gulp.task('cleanall', function () {
     del.sync(paths.dist, { dot: true });
@@ -41,6 +42,11 @@ module.exports = function (pkg, config) {
     return gulp.src(webpack.entry.index)
       .pipe($.webpack(webpack))
       .pipe(gulp.dest(paths.dist));
+  });
+
+  gulp.task('server', function () {
+    return gulp.src(paths.dist)
+      .pipe($.webserver(server));
   });
 
   gulp.task('init', function () {

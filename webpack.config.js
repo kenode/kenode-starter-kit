@@ -3,6 +3,7 @@
 var webpack = require('webpack');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var path = require('path');
+console.log(process.cwd());
 
 module.exports = function (pkg) {
   var paths = pkg.paths;
