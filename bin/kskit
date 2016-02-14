@@ -1,19 +1,17 @@
-#!/use/bin/env node
+#!/usr/bin/env node
 
 var program = require('commander');
 var path = require('path');
 var fs = require('fs');
 var readline = require('readline');
 var mkdirp = require('mkdirp');
-var handlebars = require('handlebars');
 var _ = require('lodash');
 var pkg = require('../package.json');
 
 var _exit = process.exit;
-
 var version = pkg.version;
-
 process.exit = exit;
+_.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
 
 before(program, 'outputHelp', function () {
   this.allowUnknownOption();
@@ -21,15 +19,16 @@ before(program, 'outputHelp', function () {
 
 program
   .version(version)
-  .usage('[option] [dir]')
-  .option('-r --react', 'add react frameworks')
+  .usage('[dir] [option]')
+  .option('-f, --framework <name>', 'add frameworks, default to react', /^(react|vue)$/i, 'react')
+  .option('-p, --port <n>', 'develop port, default to 8989', /^[1-9]\d*$/i, 8989)
   .parse(process.argv);
 
 if (!exit.exited) {
   main();
 }
 
-function before (obj, method, fu) {
+function before (obj, method, fn) {
   var old = obj[method];
   obj[method] = function () {
     fn.call(this);
@@ -56,9 +55,6 @@ function main () {
   var destinationPath = program.args.shift() || '.';
   // App name
   var appName = path.basename(path.resolve(destinationPath));
-  // Frameworks
-  program.frameworks = 'react';
-  if (program.react) program.frameworks = 'react';
   // Generate application
   emptyDirectory(destinationPath, function (empty) {
     if (empty || program.force) {
@@ -107,17 +103,18 @@ function createApplication (app_name, path) {
     console.log('   install dependencies:');
     console.log('     $ cd %s && npm install', path);
     console.log();
-    // exec('cd ' + path + ' && npm install');
   }
   var config = load_file('templates/config.js');
   var configStr;
-  _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
   mkdir(path, function () {
     var pkg = {
       name: app_name,
       version: '1.0.0',
       description: '',
       scripts: {
+        init: 'gulp init',
+        build: 'gulp build',
+        dev: 'gulp dev',
         test: 'echo \"Error: no test specified\" && exit 1'
       },
       paths: {
@@ -150,26 +147,27 @@ function createApplication (app_name, path) {
       copy_file('templates/index.html', path + '/assets/index.html');
       complete();
     });
-    switch (program.frameworks) {
+    switch (program.framework) {
       case 'react':
         mkdir(path + '/source', function () {
           copy_file('templates/react.index.jsx', path + '/source/index.jsx');
           complete();
         });
         pkg['dependencies'] = {
-          'react': '^0.14.7',
-          'react-dom': '^0.14.7'
+          'react': '0.14.x',
+          'react-dom': '0.14.x'
         };
-        pkg['externals'] = {
-          'react': 'React',
-          'react-dom': 'ReactDOM'
+        configStr = {
+          modules: '      \'node_modules/react/dist/react.js\',\n' +
+                   '      \'node_modules/react-dom/dist/react-dom.js\'',
+          entry: '  entry: {\n' +
+                 '   \'index\': \'./source/index.jsx\'\n' +
+                 '  }',
+          externals: '  externals: {\n' +
+                     '    \'react\': \'React\',\n' +
+                     '    \'react-dom\': \'ReactDOM\'\n' +
+                     '  }'
         };
-        pkg['entry'] = {
-          'index': './source/index.jsx'
-        };
-        configStr = _.template(config)({
-          modules: load_file('templates/react.config.js')
-        });
         break;
       default:
         break;
@@ -177,8 +175,10 @@ function createApplication (app_name, path) {
     write(path + '/package.json', JSON.stringify(pkg, null, 2));
     copy_file('webpack.config.js', path + '/webpack.config.js');
     copy_file('index.js', path + '/gulp.config.js');
-    write(path + '/config.js', configStr);
-    // copy_file('templates/config.js', path + '/config.js');
+    write(path + '/config.js', _.template(config)(_.assign({
+      appname: _.lowerCase(app_name),
+      port: program.port
+    }, configStr)));
     copy_file('templates/gulpfile.js', path + '/gulpfile.js');
     complete();
   });
@@ -207,9 +207,3 @@ function copy_file (from, to) {
 function load_file (name) {
   return fs.readFileSync(path.join(__dirname, '..', name), 'utf-8');
 }
-
-
-
-
-
-

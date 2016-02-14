@@ -11,7 +11,12 @@ module.exports = function (pkg, config) {
   var clean = config.clean;
   var html = config.html;
   var vendor = config.vendor;
-  var webpack = config.webpack;
+  // var webpack = config.webpack;
+  var webpack = require('./webpack.config')({
+    paths: paths,
+    entry: config.entry,
+    externals: config.externals
+  });
   var server = config.server;
 
   gulp.task('cleanall', function () {
@@ -50,7 +55,15 @@ module.exports = function (pkg, config) {
   });
 
   gulp.task('init', function () {
+    runSequence('cleanall', ['vendor', 'html']);
+  });
 
+  gulp.task('dev', function () {
+    runSequence('webpack', ['server']);
+  });
+
+  gulp.task('build', function () {
+    runSequence('webpack');   
   });
 
 };

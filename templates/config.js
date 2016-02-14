@@ -1,7 +1,6 @@
 'use strict';
 
 var pkg = require('./package');
-var webpackConfig = require('./webpack.config')(pkg);
 var paths = pkg.paths;
 
 module.exports = {
@@ -13,20 +12,21 @@ module.exports = {
       paths.assets + '/*.html'
     ],
     assign: {
-      title: 'Kenode Starter Kit',
+      title: '{{appname}}',
       appId: 'wrap'
     }
   },
   vendor: {
     file: 'vendor.js',
     modules: [
-      {{modules}}
+{{modules}}
     ]
   },
-  webpack: webpackConfig,
+{{entry}},
+{{externals}},
   server: {
     host: 'localhost',
-    port: 8989,
+    port: {{port}},
     livereload: false,
     directoryListing: false,
     open: true
