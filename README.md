@@ -1,4 +1,7 @@
 # kenode-starter-kit
+
+[![Build Status](https://travis-ci.org/kenode/kenode-starter-kit.svg?branch=master)](https://travis-ci.org/kenode/kenode-starter-kit)
+
 Kenode Starter Kit 是一个前端模块化快速开发套件
 
 ## Installation
