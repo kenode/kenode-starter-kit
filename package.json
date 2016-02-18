@@ -8,7 +8,8 @@
     "kskit": "./bin/kskit"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-ci": "mocha --reporter spec --check-leaks test/"
   },
   "dependencies": {
     "babel-core": "^6.4.5",
@@ -41,5 +42,9 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kenode/kenode-starter-kit/issues"
+  },
+  "devDependencies": {
+    "mocha": "^2.4.5",
+    "rimraf": "^2.5.2"
   }
 }
